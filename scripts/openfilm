@@ -1,0 +1,26 @@
+#!/bin/sh
+# Pinned OpenFilm for video-skill. mise installs the pinned version on first use, so no
+# global install or config file is needed, and nothing touches a project's own .mise.toml.
+# To upgrade, read the release notes, change OPENFILM_VERSION, and re-run setup.sh.
+#
+# usage: openfilm [-C FILM] ARGS...   (-C runs in the film folder, for `look` and `render`)
+#
+# Studio never pops a browser window on its own; open the address `open` prints instead.
+set -eu
+OPENFILM_VERSION=0.2.7
+NODE_VERSION=24
+
+if [ "${1:-}" = "-C" ]; then
+  cd "${2:?usage: openfilm -C FILM ARGS...}"
+  shift 2
+fi
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "openfilm: mise is not installed; run scripts/setup.sh next to this file" >&2
+  exit 127
+fi
+
+# mise's default npm backend (aube) fails in Claude's shell with "user aborted".
+export MISE_NPM_PACKAGE_MANAGER=npm
+export OPENFILM_NO_BROWSER=1
+exec mise exec "node@$NODE_VERSION" "npm:openfilm@$OPENFILM_VERSION" -- openfilm "$@"
