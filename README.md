@@ -6,8 +6,9 @@ something a model can read: frames to look at and numbers to check.
 
 ![A loop from the demo film](docs/img/torii-loop.webp)
 
-*From a 30-second film Claude made with this skill and its companion, photo-skill: the photos
-were found by searching a library for "a red torii gate", "a bamboo forest" and so on. Watch the
+*From a 30-second film Claude made with this skill and its companion,
+[photo-skill](https://github.com/kylefritz/photo-skill): the photos were found by searching a
+library for "a red torii gate", "a bamboo forest" and so on. Watch the
 whole thing: [docs/autumn-in-japan.mp4](docs/autumn-in-japan.mp4).*
 
 ## What it does
@@ -27,7 +28,7 @@ whole thing: [docs/autumn-in-japan.mp4](docs/autumn-in-japan.mp4).*
 ## Install
 
 ```bash
-git clone https://github.com/<you>/video-skill ~/code/video-skill
+git clone https://github.com/kylefritz/video-skill ~/code/video-skill
 ln -s ~/code/video-skill ~/.claude/skills/video-skill
 ```
 
@@ -111,6 +112,18 @@ ffmpeg for simple cuts.
 | `scripts/setup.sh` | checks mise, ffmpeg and OpenFilm; reports Playwright browsers OpenFilm removed |
 
 Requires macOS for HDR tone-mapping (`avconvert`); everything else needs only ffmpeg, uv and mise.
+
+## Companion: photo-skill
+
+[**photo-skill**](https://github.com/kylefritz/photo-skill) finds the pictures: it searches an
+Apple Photos library (or any folder) by date, place, person or what's in the photo, judges
+candidates on contact sheets, and downloads full-resolution originals from iCloud. This skill
+hands photo work to it, and it hands films back here. Install both:
+
+```bash
+git clone https://github.com/kylefritz/photo-skill ~/code/photo-skill
+ln -s ~/code/photo-skill ~/.claude/skills/photo-skill
+```
 
 ## License
 

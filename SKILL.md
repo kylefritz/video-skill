@@ -143,8 +143,10 @@ uv run --no-project --with pillow python -I $S/footage.py gif FILM/<name>.mp4 <s
 
 ## Photos in a film
 
-Use the `photo-skill` skill to find them (search the library by description, then judge contact
-sheets) and to download full-resolution originals: previews are too small for 1080p. Copy what the
+Use the `photo-skill` skill ([github.com/kylefritz/photo-skill](https://github.com/kylefritz/photo-skill);
+if it isn't installed, offer to clone it into `~/.claude/skills/photo-skill`) to find them (search
+the library by description, then judge contact sheets) and to download full-resolution originals:
+previews are too small for 1080p. Copy what the
 film uses into `FILM/assets/`, re-saved without EXIF. Before a film with someone's photos goes
 anywhere, look at each shot at full size: face detection misses crowds, and a 300 px tile hides
 people that a 1080p frame shows.
