@@ -78,6 +78,14 @@ say which service would do it better. You can't hear it, so judge by numbers:
   `measured_*` values back) so the gain is linear.
 - `look` prints the mix's loudness, and `footage.py check` fails a render that misses the target.
 
+**Music in a film.** Use the `music-skill` skill
+([github.com/kylefritz/music-skill](https://github.com/kylefritz/music-skill); if it isn't
+installed, offer to clone it into `~/.claude/skills/music-skill`). It makes a house or techno bed
+at the film's exact length and loudness (`banger.py --seconds <film length> --lufs -22 --mute
+lead`), and its `listen.py look` and `check` read any music you were handed or a model made
+(tempo, key, where the drop is, clipping, true peak) before it goes under the picture. Save the
+bed under `FILM/assets/` with its `score.txt`, whose last line is the command that made it.
+
 ## Footage you were handed: intake
 
 Phone video is rarely what it looks like. Run this on anything before you look at it or cut it:

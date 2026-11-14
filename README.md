@@ -125,6 +125,18 @@ git clone https://github.com/kylefritz/photo-skill ~/code/photo-skill
 ln -s ~/code/photo-skill ~/.claude/skills/photo-skill
 ```
 
+## Companion: music-skill
+
+[**music-skill**](https://github.com/kylefritz/music-skill) makes and checks the sound: a house
+or techno bed at an exact length, tempo, key and loudness, with stems and MIDI, plus tempo, key,
+structure and loudness readouts for any audio. This skill hands music work to it, and it hands
+the bed back here for the final mix check. Install it the same way:
+
+```bash
+git clone https://github.com/kylefritz/music-skill ~/code/music-skill
+ln -s ~/code/music-skill ~/.claude/skills/music-skill
+```
+
 ## License
 
 MIT. See [LICENSE](LICENSE). OpenFilm is a separate project under its own MIT license.
