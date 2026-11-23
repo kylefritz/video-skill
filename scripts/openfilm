@@ -1,13 +1,15 @@
 #!/bin/sh
 # Pinned OpenFilm for video-skill. mise installs the pinned version on first use, so no
 # global install or config file is needed, and nothing touches a project's own .mise.toml.
+# OpenFilm 0.4.1 requires Node >= 22.2; NODE_VERSION is a current Node that meets that.
 # To upgrade, read the release notes, change OPENFILM_VERSION, and re-run setup.sh.
+# `openfilm update` and `npx openfilm` bypass this pin.
 #
 # usage: openfilm [-C FILM] ARGS...   (-C runs in the film folder, for `look` and `render`)
 #
 # Studio never pops a browser window on its own; open the address `open` prints instead.
 set -eu
-OPENFILM_VERSION=0.2.7
+OPENFILM_VERSION=0.4.1
 NODE_VERSION=24
 
 if [ "${1:-}" = "-C" ]; then
