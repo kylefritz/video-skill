@@ -1,6 +1,6 @@
 ---
 name: video-skill
-description: Make, edit, check and understand videos from a terminal, for an agent that can't watch them. Use when someone wants a video made, edited, checked or rendered - a launch or demo video, explainer, title card, motion graphics, slideshow of photos, trip or event montage, GIF, social clip, or a cut of existing footage and sound - or wants to know what's in a video ("what happens in this clip", "find the moment when", "transcribe this"), or has phone footage that looks washed out, sideways or out of sync. Also for OpenFilm, its Studio editor, film.html or pages with window.film, and for loudness, H.264 compatibility, HDR to SDR, GIF and WebP export.
+description: Make, edit, check and understand videos from a terminal, for an agent that can't watch them. Use when someone wants a video made, edited, checked or rendered - a launch or demo video, explainer, title card, motion graphics, slideshow of photos, trip or event montage, GIF, social clip, or a cut of existing footage and sound - or wants to know what's in a video ("what happens in this clip", "find the moment when", "transcribe this"), or has phone footage that looks washed out, sideways or out of sync. Also for OpenFilm, its Studio editor, film.html or pages with window.film, and for loudness, H.264 compatibility, HDR to SDR, GIF and WebP export, and for choosing OpenFilm, Remotion or ffmpeg.
 ---
 
 # video-skill
@@ -25,12 +25,15 @@ prints, or explain it plainly to the person. Safe to re-run.
 with a `film.html` that cuts HTML pages, footage, pictures and sound together, each page drawing
 any moment `t` it's asked for. Studio is its local browser editor.
 
-1. **Print the manual and read it whole** (it's short and it changes between releases):
-   `$S/openfilm`. Follow it, with this file taking precedence where they differ.
+1. **Read the manual for this release.** `$S/openfilm` with no arguments prints a short page that
+   points at `openfilm skill film`, `openfilm skill media` and `openfilm skill canvas`. Read the
+   one that matches the work (`$S/openfilm skill film` for a film). It changes between releases;
+   follow it, with this file taking precedence where they differ.
 2. `$S/openfilm` is the only way to run OpenFilm here: it pins the version, installs it through
-   mise on first use, and keeps Studio from popping a browser window. Don't use `npx openfilm`
-   (bypasses the pin) or `npx skills add openfilm/openfilm` (an upstream skill that competes with
-   this one).
+   mise on first use, and keeps Studio from popping a browser window. Don't use `openfilm update`
+   or `npx openfilm` (both bypass the pin) or `npx skills add openfilm/openfilm` (an upstream
+   skill that competes with this one). OpenFilm 0.4.1 needs Node >= 22.2; the wrapper pins a
+   current Node that meets that.
 3. `FILM` is always an absolute path, `$HOME/Movies/OpenFilm/Projects/<film-name>`. A relative
    name lands in the current folder, such as somebody's git repo. Films never go in a repo.
 
@@ -38,18 +41,25 @@ any moment `t` it's asked for. Studio is its local browser editor.
 | --- | --- |
 | Create or open | `$S/openfilm open FILM` |
 | Check the whole film | `$S/openfilm -C FILM look` |
-| Check a moment, a stretch, a file | `… look 4.5`, `look 3-6`, `look assets/bed.wav` |
+| Check moments, stretches, a file | `… look 4.5`, `look 3-6`, several times or ranges in one call, `look assets/bed.wav` |
 | Check a fast entrance | `… look 0-2 --count 24` |
-| Render the MP4 | `$S/openfilm -C FILM render` |
+| Mix against the publish target | `… look --loudness=-14` |
+| Scan a render | `… look --full` (after a render: white flash, jump, still, black) |
+| Publish the MP4 | `$S/openfilm -C FILM render --loudness=-14 --out FILM/<name>.mp4` |
+| Render a stretch | `… render 3-6` (`--4k`, `--alpha`, `--out PATH`, `--loudness=<n>`) |
 | What media services are connected | `$S/openfilm get` |
-| Diagnose the install | `$S/openfilm doctor` |
+| Diagnose the install | `$S/openfilm doctor` (walks the Projects library) |
 
-`look` and `render` run without Studio open and print paths relative to FILM. Studio's address
-contains an access key: give it only to the person you're working with (it's `127.0.0.1`, Chrome or
-Edge, not from a phone).
+`look` and `render` run without Studio open. `look` writes under `FILM/.film/cache/look/` (the
+whole film is one sheet, named for its range). `render` writes under `FILM/.film/cache/render/`
+unless `--out` is set. Studio's address contains an access key: give it only to the person you're
+working with (it's `127.0.0.1`, Chrome or Edge, not from a phone).
+
+`look --loudness=-14` on the project prints the mix against that target. On an MP4, `look` does
+not print LUFS. `look --full` needs a render first.
 
 **Read every `look` sheet before you show anything**, and fix what you see. Its checks (same `t`
-draws the same picture, fonts loaded, text clipped, loudness) say nothing about taste or layout. A
+draws the same picture, fonts loaded, text clipped) say nothing about taste or layout. A
 `!` about text cut off during an entrance is fine; cut off at rest is a bug. Then look at a few
 moments at full size (`look 12.5`): a 300 px tile hides small things, people included.
 
@@ -67,16 +77,22 @@ How a film is built, learned from making one:
 ## Sound
 
 `$S/openfilm get` shows what's connected; generated voice, music and effects need the person's own
-provider keys (Studio: OpenFilm logo → Settings → Providers). Without them, make sound with ffmpeg,
+keys (Studio: OpenFilm logo → Settings → Services). Some `get` text still says Providers. A custom
+provider is `providers/<id>/provider.mjs`. Without keys, make sound with ffmpeg,
 save it under `FILM/assets/`, keep the command in `FILM/sound-notes.txt` so it can be rebuilt, and
 say which service would do it better. You can't hear it, so judge by numbers:
 
-- **-16 LUFS integrated** for a finished mix (podcasts, most web video); streaming platforms
-  normalize near -14. Keep true peak at or under **-1 dBTP**. A bed under a voice sits ~-22.
-- Measure: `ffmpeg -i X -af ebur128=peak=true -f null -`. Normalize a generated bed with
-  `loudnorm=I=-16:TP=-1.5:LRA=7`; for a final master, run `loudnorm` twice (measure, then feed the
-  `measured_*` values back) so the gain is linear.
-- `look` prints the mix's loudness, and `footage.py check` fails a render that misses the target.
+- **Publish at -14 LUFS integrated**, true peak at or under **-1 dBTP**. Studio exports at -14.
+  The CLI does not normalize on its own, so a publish render is `render --loudness=-14`. Without
+  the flag, the file keeps the mix's own loudness: one un-normalized render measured -23.0 LUFS
+  and -10.2 dBTP, and the same render with `--loudness=-14` measured -14.0 LUFS and -1.8 dBTP. A bed
+  under a voice sits ~-22. A podcast-style mix can still aim at -16 (`check --target -16`).
+- Measure a file: `ffmpeg -i X -af ebur128=peak=true -f null -`. `look --loudness=-14` on the
+  project prints the mix against that target. `look` on an MP4 does not print LUFS.
+  `footage.py check` fails a render that misses its target (default -14, ±1.5 LU).
+- Audio you build with ffmpeg: run `loudnorm` twice (measure, then feed the `measured_*` values
+  back) so the gain is linear. `loudnorm=I=-14:TP=-1.5:LRA=7` for a master, `I=-22` for a bed
+  under voice.
 
 **Music in a film.** Use the `music-skill` skill
 ([github.com/kylefritz/music-skill](https://github.com/kylefritz/music-skill); if it isn't
@@ -85,6 +101,14 @@ at the film's exact length and loudness (`banger.py --seconds <film length> --lu
 lead`), and its `listen.py look` and `check` read any music you were handed or a model made
 (tempo, key, where the drop is, clipping, true peak) before it goes under the picture. Save the
 bed under `FILM/assets/` with its `score.txt`, whose last line is the command that made it.
+
+## Captions
+
+A caption track is a `.vtt` beside its audio, same name (`vo/1.wav` beside `vo/1.vtt`): one cue
+per line, a timestamp tag on each word. Studio adds a caption track when the first word-timed
+file arrives. Never draw subtitles inside a page. `get tts` already writes that VTT, so don't
+transcribe the same take to make one. `render --subtitles` is only for a project that has not
+moved to caption tracks.
 
 ## Footage you were handed: intake
 
@@ -132,15 +156,17 @@ mapping each id to its time. Read the sheets and answer with ids and times. Prac
 ## Delivering
 
 ```bash
-uv run --no-project --with pillow python -I $S/footage.py check FILM/<name>.mp4 --duration 30
+uv run --no-project --with pillow python -I $S/footage.py check FILM/<name>.mp4 --duration 30 --target -14
 uv run --no-project --with pillow python -I $S/footage.py share FILM/<name>.mp4 <scratch>/<name>-share.mp4
 uv run --no-project --with pillow python -I $S/footage.py gif FILM/<name>.mp4 <scratch>/loop.webp --start 2.5 --duration 6 --width 480
 ```
 
 - `check` must pass before you hand over a file: H.264, yuv420p, even size, constant frame rate,
   `moov` before `mdat` (faststart: plays while downloading), duration, loudness ±1.5 LU, true peak.
-- Render when the person asks for the file or can't be at this Mac; run `look` on the MP4 itself
-  as the last check. `share` makes a small copy (1280 wide, CRF 28: a 30 s 1080p render went from
+  A published film is -14 LUFS (`--target -14`, the default).
+- Render when the person asks for the file or can't be at this Mac. Publish with
+  `render --loudness=-14`. Run `look` on the MP4 for the picture, then `check`: `look` on an MP4
+  does not print LUFS. `share` makes a small copy (1280 wide, CRF 28: a 30 s 1080p render went from
   34 MB to 3.8 MB) for a web page or chat; the film's own MP4 stays untouched.
 - Loops: **animated WebP over GIF.** A 5.6 s photo loop with a slow zoom was 6.7 MB as GIF and
   1.6 MB as WebP: GIF can't reuse pixels when every pixel moves. GIF only when the target can't
@@ -159,34 +185,64 @@ film uses into `FILM/assets/`, re-saved without EXIF. Before a film with someone
 anywhere, look at each shot at full size: face detection misses crowds, and a 300 px tile hides
 people that a 1080p frame shows.
 
+## OpenFilm vs Remotion vs ffmpeg
+
+OpenFilm is the default. A film here is HTML plus `look` sheets.
+
+| Job | Tool |
+| --- | --- |
+| Editorial film: montage, recap, walkthrough, narrated doc, one-off launch or demo, HTML scenes, contact-sheet checks | OpenFilm |
+| Many variants from data or props, a reusable motion system, in-app preview, batch rendering | Remotion |
+| Transcode, loudness, ducking, joins | ffmpeg |
+
+[Remotion](https://www.remotion.dev/docs/) (4.x, React components, `useCurrentFrame`) covers that
+second row: `@remotion/player` previews inside a React app, Lambda renders a batch,
+`@remotion/captions` handles captions. The player is not a substitute for a `<video>` you publish.
+The license is free for individuals and for-profit organizations of up to 3 employees; a larger
+organization needs a Company License
+([LICENSE](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md),
+[pricing](https://www.remotion.dev/docs/license/pricing)). Install its agent skills only inside
+a Remotion project (`npx remotion skills add`, or `npx skills add remotion-dev/skills`). Beside
+this skill, they compete with it.
+
+ffmpeg stays the I/O layer, including everything `footage.py` does.
+
 ## Other tools
 
-OpenFilm fits an agent best because a film is plain HTML and `look` hands back exactly what you
-need to see. Alternatives, as of late 2026:
+Other authoring tools, as of late 2026:
 
 | Tool | Authoring | Notes |
 | --- | --- | --- |
 | [HyperFrames](https://github.com/heygen-com/hyperframes) (HeyGen, Apache-2.0) | HTML/CSS + GSAP, rendered by headless Chrome | the closest analogue; `check --json` lint/layout/contrast gate, snapshots, a Claude Code plugin |
-| [Remotion](https://www.remotion.dev) | React components | mature, official agent skills; source-available license, companies above a small size need one |
 | [Manim](https://www.manim.community) (MIT) | Python scenes | math and diagram explainers |
-| MoviePy (MIT) / raw ffmpeg | Python / filtergraphs | simple cuts and overlays; ffmpeg is best kept as the I/O layer |
+| MoviePy (MIT) | Python | simple cuts and overlays |
 
 ## Upgrading OpenFilm
 
 Upstream ships often. Read the release notes and run `npm view openfilm scripts` first (a
-`preinstall` or `postinstall` entry deserves a look), then change `OPENFILM_VERSION` in
-`scripts/openfilm` and re-run `setup.sh`. Afterwards `ls ~/Library/Caches/ms-playwright`: OpenFilm's
-first run deletes Playwright browsers that have no link marker; `setup.sh` reports any it removed,
-and `npx playwright install chromium` in the project that needs one puts it back.
+`preinstall` or `postinstall` entry deserves a look). 0.4.1's scripts are `dev`, `test`,
+`build:ui` and `typecheck`, with no preinstall or postinstall. Then change `OPENFILM_VERSION` in
+`scripts/openfilm` and re-run `setup.sh`. That pin needs Node >= 22.2; the wrapper's Node pin
+already meets it. `openfilm update` and `npx openfilm` bypass the pin.
+
+A `film.html` written for 0.2.7 needed no changes.
+
+Afterwards, stop stale Studio servers (`pgrep -fl studio/server/main.mjs`). Then
+`ls ~/Library/Caches/ms-playwright`: OpenFilm's first run deletes Playwright browsers that
+have no link marker; `setup.sh` reports any it removed, and `npx playwright install chromium`
+in the project that needs one puts it back. `doctor` walks the Projects library.
 
 ## Common mistakes
 
 | Mistake | Fix |
 | --- | --- |
-| `npx openfilm …` | `$S/openfilm …`: npx bypasses the pin |
+| `openfilm update` or `npx openfilm …` | `$S/openfilm …`. Both bypass the pin: change `OPENFILM_VERSION` and re-run `setup.sh` |
+| `render` with no `--loudness` on a file you'll publish | `render --loudness=-14`. The CLI does not normalize |
+| Subtitles drawn into a page | A `.vtt` beside the audio, same name, one cue per line, a timestamp on each word |
+| Reading LUFS off `look` of an MP4 | It does not print them. `footage.py check` does |
 | `look` or `render` in the wrong folder | `$S/openfilm -C FILM …` |
 | Trusting `look`'s checks without opening its PNG | Read the sheet; a passing check says nothing about layout |
 | Cutting or looking at iPhone footage directly | `probe`, then `proxy`: HDR, rotation and VFR all bite |
 | Sending the master MP4 to a chat | `share` it, then `check` the copy |
 | A GIF for a README or a page | WebP, ~4× smaller |
-| Stale Studio after an upgrade | Stop the old `studio/server/main.mjs` processes (`pgrep -fl openfilm`); one Studio is two processes |
+| Stale Studio after an upgrade | Stop leftover `studio/server/main.mjs` processes (`pgrep -fl studio/server/main.mjs`) |

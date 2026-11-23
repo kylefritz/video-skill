@@ -13,9 +13,10 @@ usage: uv run --no-project --with pillow python -I footage.py COMMAND ...
                                       change, and at least one every N seconds. Tiles are labeled
                                       "id · m:ss.s"; OUT/manifest.json maps id -> time and sheet
                                       (check_verdicts.py reads it).
-  check FILE [--duration S] [--target -16]
+  check FILE [--duration S] [--target -14]
                                       delivery check: codec, yuv420p, even size, constant frame rate,
-                                      faststart, duration, loudness (EBU R128) and true peak. Exit 1 on FAIL.
+                                      faststart, duration, loudness (EBU R128, default -14 LUFS) and
+                                      true peak. Exit 1 on FAIL. A podcast-style -16 mix: --target -16.
   gif IN OUT.gif [--fps 12] [--width 640] [--start 0] [--duration 6]
                                       a GIF with a generated palette (no banding, small files)
   share IN OUT.mp4 [--width 1280] [--crf 28]
@@ -234,7 +235,7 @@ def loudness(path):
 
 
 def cmd_check(args):
-    want_dur, target = opt(args, "--duration", None), opt(args, "--target", -16)
+    want_dur, target = opt(args, "--duration", None), opt(args, "--target", -14)
     path = args[0]
     i = info(path)
     v = i["video"] or {}

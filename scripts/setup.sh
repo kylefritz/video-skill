@@ -22,6 +22,8 @@ else
   todo "ffmpeg is missing (sound beds and share copies): brew install ffmpeg"
 fi
 
+# OpenFilm is pinned in scripts/openfilm (0.4.1, Node >= 22.2). Upgrade by editing that pin
+# and re-running this script. `openfilm update` and `npx openfilm` bypass the pin.
 # OpenFilm's first run deletes Playwright browsers that have no link marker, which can break
 # another project's Playwright install. Note what's there so we can say what to put back.
 before=$(ls "$PW" 2>/dev/null)
